@@ -1,0 +1,16 @@
+---
+Name: symbiotic_extensions
+---
+SilverStripe\Security\Member:
+  extensions:
+    - Symbiote\Symbiotic\Extension\SymbioticMember
+
+
+---
+Name: symbioticmiddleware
+---
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Director:
+    properties:
+      Middlewares:
+        OrgAuthMiddleware: '%$Symbiote\Symbiotic\Middleware\OrgAuthMiddleware'

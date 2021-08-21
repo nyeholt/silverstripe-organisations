@@ -1,0 +1,29 @@
+{
+    "name": "nyeholt/silverstripe-organisations",
+    "type": "silverstripe-vendormodule",
+    "description": "A simple mechanism for managing organisation based ownership of 'things'",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "silverstripe"
+    ],
+    "homepage": "https://github.com/nyeholt/silverstripe-organisations",
+    "authors": [
+        {
+            "name": "Marcus Nyeholt",
+            "email": "marcus@symbiote.com.au"
+        }
+    ],
+    "require": {
+        "silverstripe/framework": "~4.0",
+        "symbiote/silverstripe-multivaluefield": "~5.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        },
+        "expose": [
+			"client/javascript",
+            "client/css"
+        ]
+    }
+}
