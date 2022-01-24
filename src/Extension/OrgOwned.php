@@ -2,6 +2,7 @@
 
 namespace Symbiote\Symbiotic\Extension;
 
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
@@ -22,7 +23,20 @@ class OrgOwned extends DataExtension
 
     public function updateCMSFields(FieldList $fields)
     {
-        $fields->insertBefore('Title', DropdownField::create('OwningOrgID', 'Owning Organisation', Organisation::get()->map())->setEmptyString(''));
+        $allOrgs = Organisation::get();
+
+        $allowedOrgs = $allOrgs->filterByCallback(function ($item) {
+            return $item->canView();
+        });
+
+        $fields->insertBefore('Title', $oo = DropdownField::create('OwningOrgID', 'Owning Organisation', $allowedOrgs->map())->setEmptyString(''));
+
+        $default = Security::getCurrentUser() ? Security::getCurrentUser()->CurrentOrgID : 0;
+        $oo->setValue($this->owner->OwningOrgID ? $this->owner->OwningOrgID : $default);
+
+        if (!($this->owner instanceof SiteTree)) {
+            $this->updateSettingsFields($fields);
+        }
     }
 
     public function updateSettingsFields(FieldList $fields)

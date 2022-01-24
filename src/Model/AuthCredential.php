@@ -2,6 +2,7 @@
 
 namespace Symbiote\Symbiotic\Model;
 
+use DateTimeImmutable;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
@@ -9,7 +10,8 @@ use SilverStripe\Security\Permission;
 use SilverStripe\Forms\TextField;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
-
+use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Token;
 
 class AuthCredential extends DataObject
 {
@@ -51,7 +53,9 @@ class AuthCredential extends DataObject
         }
 
         if ($this->MemberID && $this->Token) {
-            $tokenField = TextField::create('JWT', 'JWT token', $this->getJWT())
+            $token = $this->getJWT();
+            $tokenField = TextField::create('JWTVal', 'JWT token')
+                ->setValue($token->payload())
                 ->setReadOnly(true)
                 ->setRightTitle("Set this as your Authorization: Bearer {token} header");
 
@@ -61,19 +65,20 @@ class AuthCredential extends DataObject
         return $fields;
     }
 
+    /**
+     * @return Token
+     */
     public function getJWT()
     {
         $createdStamp = strtotime($this->Created);
         $signer = new Sha256();
         $jwt = (new Builder())
-            // ->setIssuer('https://www.symbiote.com.au') // Configures the issuer (iss claim)
-            // ->setIssuedAt($createdStamp) // Configures the time that the token was issued (iat claim)
-            // ->setNotBefore($createdStamp + 60) // Configures the time that the token can be used (nbf claim)
-            ->setExpiration($createdStamp + 20 * 365 * 86400) // 10 years in the future
-            ->set('uid', $this->MemberID) // Configures a new claim, called "uid"
-            ->set('orgid', $this->OrganisationID)
-            ->sign($signer, $this->Token)
-            ->getToken(); // Retrieves the generated token
+            ->expiresAt(new DateTimeImmutable('@' . ($createdStamp + 20 * 365 * 86400)))
+            ->issuedBy('https://www.symbiote.com.au') // Configures the issuer (iss claim)
+            ->issuedAt(new DateTimeImmutable('@' . $createdStamp)) // Configures the time that the token was issued (iat claim)
+            ->withClaim('uid', $this->MemberID) // Configures a new claim, called "uid"
+            ->withClaim('orgid', $this->OrganisationID)
+            ->getToken($signer, new Key($this->Token)); // Retrieves the generated token
 
         return $jwt;
     }
